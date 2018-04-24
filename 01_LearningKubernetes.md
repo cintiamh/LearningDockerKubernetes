@@ -172,3 +172,17 @@ $ echo "YWRtaW4=" | base64 --decode
 ```
 
 ## Using secrets in applications
+
+yaml configuration
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: MWYyZDFlMmU2N2Rm
+```
+
+## Deploying an application to Kubernetes
