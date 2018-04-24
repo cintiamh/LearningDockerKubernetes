@@ -84,3 +84,91 @@ $ minikube stop
   - The kube-proxy in each worker node is responsible for managing virtual IPs for the service.
 
 ## Achieving high-availability
+
+* Load balancing between multiple master nodes
+  - maintain multiple master nodes, accessed via load balancer
+  - keep multiple master components up and healthy, but only one acting at a time.
+  - have a clustered and replicated etcd storage for redundancy
+* Federation
+  - multiple kuberenetes clusters (kubefed)
+  - federation control plane to manage remote clusters
+  - provide a host cluster to make up the federation control plane
+  - expand across multiple clusters
+
+=> Federation
+
+## Scaling Kubernetes
+
+### Scaling Horizontally
+
+Autoscaling in Kubernetes:
+```
+$ kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10
+```
+
+## Federation
+
+* clusters may be spread across availability zones.
+
+* Hight cost
+
+High-level steps:
+* install kubefed CLI
+* Choose a host cluster to deploy the federation control plane
+* Deploy the federation control plane
+* Add your clusters to the federation
+
+## Managing secrets and configuration
+
+### Configuration best practices
+
+Configuration:
+* API objects => YAML or JSON => using kubectl or API.
+
+```
+$ kubectl create -f <directory>
+```
+
+* YAML over JSON
+* Related API objects => group single YAML file
+  - `---`: logically separate object definitions within a YAML file.
+* Don't define default values
+
+Best practices:
+* `kubectl create -f <directory>`
+* `kubectl delete` - `delete` is deprecated
+* `kubectl run` - quickly create and expose single container deployments
+
+Node affinity:
+* Taints and tolerations work together to ensure that pods are not scheduled onto inappropriate nodes
+* Node affinity, is a property of pods that attract (toleration) or repels (taint) them to a set of nodes.
+* Taints are applied to nodes, while tolerations are applied to pods.
+* `kubectl taint nodes <node-name> <params>` - apply taint to a node
+* Tolerations are specified in the PodSpec tolerations
+
+```
+tollerations:
+  - key: "key"
+    operator: "Equal"
+    value: "value"
+    effect: "NoSchedule"
+```
+
+## Creating and Decoding Secrets
+
+```
+$ kubectl create secret -f ./secret.yaml
+$ kubectl create secret generic db-user-pass --from-file=./username.txt --from-file=./password.txt
+$ kubectl delete secret db-user-pass
+$ kubectl get secrets
+$ kubectl describe secrets/db-user-pass
+```
+
+Encode / decode:
+```
+$ echo -n "admin" | base64
+$ echo -n "1f2d1e2e67df" | base64
+$ echo "YWRtaW4=" | base64 --decode
+```
+
+## Using secrets in applications
