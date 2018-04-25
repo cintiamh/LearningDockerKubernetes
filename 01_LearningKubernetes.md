@@ -186,3 +186,99 @@ data:
 ```
 
 ## Deploying an application to Kubernetes
+
+### Overview: Docker Containerization
+
+Container Image:
+* lightweight, stand-alone, and executable package
+* includes everything needed to run a piece of software
+* includes the code, a runtime, libraries, environment variables, and config files needed to run a piece of software
+* Docker image => proprietary container image that will run on the Docker container runtime.
+
+Container:
+* Runtime instance of an image
+* It is what the image becomes in memory when actually executed.
+* It runs completely isolated from the host environment by default, only accessing host files and ports if configured to do so.
+* Run apps natively on the host machine's kernel
+* have better performance characteristics than virtual machines.
+* Can get native access, taking no more memory than any other executable.
+
+Hypervisor => VirtualBox
+
+Docker platform:
+* Docker Engine
+  - A portable, lightweight, application runtime and packaging tool
+  - The Docker engine is what you install onto your physical or virtual hosts
+  - The Docker engine provides a CLI tool we can use to run Docker commands, to create and run Docker images.
+  - A cluster of hosts running Docker can be federated into a Swarm
+* Docker Hub
+  - Like a repository for Docker images
+  - There is the Docker Hub web service
+  - Enterprises can opt to have their own private Container repository.
+
+### Installing Docker and Building the Image
+
+Using docker pre-packed with Minikube.
+
+You can install Docker separated.
+
+In your project folder
+```
+$ touch Dockerfile
+```
+
+Dockerfile
+```
+FROM openjdk:8
+COPY hello-world-1.jar /app.jar
+EXPOSE 8080/tcp
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
+
+```
+$ minikube start
+# Point your docker client to the docker daemon in your minikube VM
+$ eval $(minikube docker-env)
+# Build your docker image within minikube
+$ docker build -t hello-java:v1 .
+# Check images
+$ docker images
+```
+
+### Deploying Your Docker Container
+
+```
+# Run your docker image
+$ kubectl run hello-java --image=hello-java:v1 --labels="app=hello-java" --port=8080
+# Start your application pod
+$ kubectl get pods
+```
+
+### Interacting With Your Container
+
+```
+# Create a service
+$ kubectl create -f service.yml
+```
+
+service.yml
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-service
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: hello-java
+  type: NodePort
+```
+
+```
+$ kubectl get services
+$ minikube service hello-service
+```
+
+This will open a browser with and URL (IP).
